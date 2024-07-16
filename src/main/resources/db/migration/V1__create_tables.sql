@@ -1,0 +1,44 @@
+CREATE TYPE user_roles AS ENUM ('ADMIN', 'USER');
+
+CREATE TYPE topic_status AS ENUM ('OPEN', 'SOLVED');
+
+CREATE TABLE courses (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    category VARCHAR(100)
+);
+
+CREATE TABLE users (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(100) NOT NULL,
+    role user_roles NOT NULL DEFAULT 'USER',
+    CONSTRAINT CHK_ROLE CHECK (role IN ('ADMIN', 'USER'))
+);
+
+CREATE TABLE topics (
+    id BIGSERIAL PRIMARY KEY,
+    title VARCHAR(100) NOT NULL UNIQUE,
+    message VARCHAR(300) NOT NULL,
+    user_id BIGINT NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    status VARCHAR(100) NOT NULL,
+    course_id BIGINT NOT NULL,
+    CONSTRAINT FK_TOPIC_USER_ID FOREIGN KEY (course_id) REFERENCES courses(id),
+    CONSTRAINT FK_TOPIC_COURSE_ID FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE replies (
+    id BIGSERIAL PRIMARY KEY,
+    title VARCHAR(255),
+    message VARCHAR(300) NOT NULL,
+    topic_id BIGINT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    user_id BIGINT NOT NULL,
+    status topic_status NOT NULL,
+    course_id BIGINT NOT NULL,
+    CONSTRAINT FK_ANSWER_TOPIC_ID FOREIGN KEY (course_id) REFERENCES courses(id),
+    CONSTRAINT FK_ANSWER_USER_ID FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT CHK_STATUS CHECK (status IN ('OPEN', 'SOLVED'))
+);
